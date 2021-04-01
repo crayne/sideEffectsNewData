@@ -1,0 +1,17 @@
+
+# Please enter the commit message for your changes. Lines starting
+# with '#' will be ignored, and an empty message aborts the commit.
+#
+# On branch master
+#
+# Initial commit
+#
+# Changes to be committed:
+#	new file:   .DS_Store
+#	new file:   autoComplete.php
+#	new file:   autoCompleteSymptoms.php
+#	new file:   header.php
+#	new file:   interactions.php
+#	new file:   nuidNLMSearch.php
+#	new file:   searchSideEffectVerbal.php
+#
