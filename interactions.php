@@ -10,7 +10,6 @@
 //nuidArray[nuid] = originalMedication or
 //nuidArray[nuid] = originalMedication,componentName
 
-//TODO:  xpath turns FORMOTEROL FUMARATE into FORMOTOROL
 include_once "nuidNLMSearch.php";
 
 Class Interaction {
@@ -23,23 +22,19 @@ $nuidArray;
 $interUrl;
 $childParentArray;
 
-
-
 //Make associative array:  $childParentArray[rxcuid] = drugname
 function getParentChildMedsFromJson($thisMed, $thisRxcuid){
 	error_log("In getParentChildMedsFromJson");
 	global $childParentArray;
 	$componentRxcuidArray;
 
-  //TODO Use new rxnav url from NIH
-//https://rxnav.nlm.nih.gov/REST/rxcui/1372704/related.json?tty=PIN. This
+//https://rxnav.nlm.nih.gov/REST/rxcui/1372704/related.json?tty=PIN
 	$thisUrl = "https://rxnav.nlm.nih.gov/REST/rxcui/".$thisRxcuid."/related.json?tty=PIN";
 	error_log("In getParentChildMedsFromJson, url = ".$thisUrl);
 	//Get JSON result
 	$result = file_get_contents($thisUrl);
 	$decodedResult = json_decode($result);
 	$encodedConceptProperties = json_encode($decodedResult->relatedGroup->conceptGroup[0]->conceptProperties);
-	error_log("In getParentChildMedsFromJson, encodedConceptProperties  = ".$encodedConceptProperties);
 	//This contains the rxcuid
 	$conceptPropertiesArray = $decodedResult->relatedGroup->conceptGroup[0]->conceptProperties;
 //TODO add elements of $componentRxcuidArray to $rxcuidArray
@@ -47,8 +42,6 @@ function getParentChildMedsFromJson($thisMed, $thisRxcuid){
 		$key = $conceptPropertiesArray[$j]->name;
 		$key = truncateToFirstBlank($key);
 		$childParentArray[$key] = $thisMed;
-		error_log("In getParentChildMedsFromJson, key = ".$key." and parent drug = ".$thisMed);
-		error_log("In getParentChildMedsFromJson, childParentArray[key] = ".$childParentArray[$key]);
 	}
 }
 
@@ -90,11 +83,9 @@ for ($i=0; $i<count($medications); $i++){
 	$nuidArray[$nuid] = $thisMed;
 	getParentChildMedsFromJson($thisMed, $nuid);
 }
-
 $nuidArrayKeys = array_keys($nuidArray);
 
 //Now do the interactions
-
 //See: https://rxnav.nlm.nih.gov/InteractionAPIs.html#uLink=Interaction_REST_findInteractionsFromList
 //Example: https://rxnav.nlm.nih.gov/REST/interaction/list.json?rxcuis=207106+152923+656659
 
@@ -153,69 +144,59 @@ function extractInteractionsFromXML($result){
 	$allConceptItemRxcuids = $xml->xpath($query);
 	for ($i=0; $i<count($allConceptItemRxcuids); $i++) {
 		$allConceptRxCuids[$i] = (string)$allConceptItemRxcuids[$i];
-
 	}
 
-
-    //Get severity array
+  //Get severity array
 	$query="//interactionPair/severity";
 	$severities = $xml->xpath($query);
 	error_log("severities length = ".count($severities));
-    foreach($severities as $severity) {
+  foreach($severities as $severity) {
     	error_log("In extractInteractionsFromXML, severity is: ".$severity);
-
     }
     //Get description array
-    $query="//interactionPair/description";
-    $descriptions = $xml->xpath($query);
+  $query="//interactionPair/description";
+  $descriptions = $xml->xpath($query);
+  $interactionArray = array();
+  //Make array of interactions
+  $j=0;
+  $i = 0;
+  //Is number of interactions correct?  There appear to be 2 interactions, with severity only in the second
+  $validInteractionCounter = 0;
+  do {
+  	$interaction = new Interaction();
+  	$k = 2*$i;
+  	$interaction->drug1 = $allConceptNames[$k];
+  	$interaction->nui1 = $allConceptRxCuids[$k];
+   	$interaction->drug2 = $allConceptNames[$k+1];
+ 		$interaction->nui2 = $allConceptRxCuids[$k+1];
+  	$interaction->interactionNui = $allConceptRxCuids[$j+4];
+  	$interaction->severity = $severities[$i];
+  	$interaction->descriptionText = $descriptions[$i];
+		$drug1 = truncateToFirstBlank($interaction->drug1);
+  	$interaction->originalDrugName1 = $childParentArray[$drug1];
+		$drug2 = truncateToFirstBlank($interaction->drug2);
+  	$interaction->originalDrugName2 = $childParentArray[$drug2];;
+  	$interactionArray[$validInteractionCounter] = $interaction;
+  	error_log("Value of validInteractionCounter in interaction loop is ".$validInteractionCounter);
+  	$validInteractionCounter++;
+  	$i++;
+  	$j+=5;
+  } while ($i<$numberOfInteractions);
 
-
-    $interactionArray = array();
-
-
-    //Make array of interactions
-    $j=0;
-    $i = 0;
-    //Is number of interactions correct?  There appear to be 2 interactions, with severity only in the second
-    $validInteractionCounter = 0;
-   // for ($i=0; $i<$numberOfInteractions; $i++,$j+=5) {
-   	  do {
-    	$interaction = new Interaction();
-    	$k = 2*$i;
-    	$interaction->drug1 = $allConceptNames[$k];
-    	$interaction->nui1 = $allConceptRxCuids[$k];
-     	$interaction->drug2 = $allConceptNames[$k+1];
-   		$interaction->nui2 = $allConceptRxCuids[$k+1];
-    	$interaction->interactionNui = $allConceptRxCuids[$j+4];
-    	$interaction->severity = $severities[$i];
-    	$interaction->descriptionText = $descriptions[$i];
-			$drug1 = truncateToFirstBlank($interaction->drug1);
-    	$interaction->originalDrugName1 = $childParentArray[$drug1];
-			$drug2 = truncateToFirstBlank($interaction->drug2);
-    	$interaction->originalDrugName2 = $childParentArray[$drug2];;
-    	$interactionArray[$validInteractionCounter] = $interaction;
-    	error_log("Value of validInteractionCounter in interaction loop is ".$validInteractionCounter);
-    	$validInteractionCounter++;
-    	$i++;
-    	$j+=5;
-   // }
-      } while ($i<$numberOfInteractions);
-
-    error_log("validInteractionCounter = ".$validInteractionCounter);
-    for ($i=0; $i<$validInteractionCounter; $i++) {
-    	error_log("");
-    	error_log("interactionArray[$i]->drug1 = ".$interactionArray[$i]->drug1);
-    	error_log("interactionArray[$i]->drug2 = ".$interactionArray[$i]->drug2);
-    	error_log("interactionArray[$i]->nui1 = ".$interactionArray[$i]->nui1);
-    	error_log("interactionArray[$i]->nui2 = ".$interactionArray[$i]->nui2);
-    	error_log("interactionArray[$i]->interactionNui = ".$interactionArray[$i]->interactionNui);
-    	error_log("interactionArray[$i]->severity = ".$interactionArray[$i]->severity);
-    	error_log("interactionArray[$i]->descriptionText = ".$interactionArray[$i]->descriptionText);
-    	error_log("interactionArray[$i]->originalDrugName1 = ".$interactionArray[$i]->originalDrugName1);
-    	error_log("interactionArray[$i]->originalDrugName2 = ".$interactionArray[$i]->originalDrugName2);
+  error_log("validInteractionCounter = ".$validInteractionCounter);
+  for ($i=0; $i<$validInteractionCounter; $i++) {
+  	error_log("");
+  	error_log("interactionArray[$i]->drug1 = ".$interactionArray[$i]->drug1);
+  	error_log("interactionArray[$i]->drug2 = ".$interactionArray[$i]->drug2);
+  	error_log("interactionArray[$i]->nui1 = ".$interactionArray[$i]->nui1);
+  	error_log("interactionArray[$i]->nui2 = ".$interactionArray[$i]->nui2);
+  	error_log("interactionArray[$i]->interactionNui = ".$interactionArray[$i]->interactionNui);
+  	error_log("interactionArray[$i]->severity = ".$interactionArray[$i]->severity);
+  	error_log("interactionArray[$i]->descriptionText = ".$interactionArray[$i]->descriptionText);
+  	error_log("interactionArray[$i]->originalDrugName1 = ".$interactionArray[$i]->originalDrugName1);
+  	error_log("interactionArray[$i]->originalDrugName2 = ".$interactionArray[$i]->originalDrugName2);
 	}
-
-    return $interactionArray;
+  return $interactionArray;
 }
 
 function truncateToFirstBlank($input){
