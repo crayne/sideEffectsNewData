@@ -127,16 +127,6 @@ else {
 	return;
 }
 
-//Check for a Rxcuid that does not appear in the original query -- these will be eliminated
-function checkForExtraneousRxcuid($thisRxcuid){
-	error_log("In checkForExtraneousRxcuid, interUrl = ".$GLOBALS['interUrl']);
-	error_log("In checkForExtraneousRxcuid, thisRxcuid = ".$thisRxcuid);
-	$pos = strpos($GLOBALS['interUrl'],$thisRxcuid);
-	error_log("In checkForExtraneousRxcuid, pos = ".$pos);
-	if ($pos === false) return false;
-	else return true;
-}
-
 //Search for interactions pairs??
 function extractInteractionsFromXML($result){
 	global $allConceptNames;
@@ -184,7 +174,6 @@ function extractInteractionsFromXML($result){
 
 
     //Make array of interactions
-    //TODO: indices are skipped when checkForExtraneousRxcuid result is false.  Need to fix this
     $j=0;
     $i = 0;
     //Is number of interactions correct?  There appear to be 2 interactions, with severity only in the second
@@ -193,20 +182,6 @@ function extractInteractionsFromXML($result){
    	  do {
     	$interaction = new Interaction();
     	$k = 2*$i;
-    	error_log("Before checkForExtraneousRxcuid, rxcuid = ".$allConceptRxCuids[$k+1]);
-    	//Check to see if rxcuid is in original query.  If not, skip it
-    	//Checking only the second one of a pair -- is this correct?
-			/*
-    	$result = checkForExtraneousRxcuid($allConceptRxCuids[$k+1]);
-    	if ($result === false) {
-    	   	$i++;
-    	    $j+=5;
-   	    	error_log("After checkForExtraneousRxcuid, rxcuid, result is false");
-    		continue;
-    	}
-    	error_log("After checkForExtraneousRxcuid, rxcuid, result is true");
-			*/
-
     	$interaction->drug1 = $allConceptNames[$k];
     	$interaction->nui1 = $allConceptRxCuids[$k];
      	$interaction->drug2 = $allConceptNames[$k+1];
