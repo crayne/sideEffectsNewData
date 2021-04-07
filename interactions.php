@@ -92,10 +92,6 @@ for ($i=0; $i<count($medications); $i++){
 }
 
 $nuidArrayKeys = array_keys($nuidArray);
-for ($i=0; $i<count($nuidArrayKeys); $i++){
-	$key = $nuidArrayKeys[$i];
-	$value = $nuidArray[$key];
-}
 
 //Now do the interactions
 
