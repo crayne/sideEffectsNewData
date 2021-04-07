@@ -16,14 +16,9 @@ include_once "nuidNLMSearch.php";
 Class Interaction {
 	public $drug1;
 	public $drug2;
-	public $interactionNui;
-	public $severity;
-	public $originalDrugName1;
-	public $originalDrugName2;
 }
 
 $allConceptNames;
-$allConceptNuis;
 $nuidArray;
 $interUrl;
 $childParentArray;
@@ -148,7 +143,7 @@ function checkForExtraneousRxcuid($thisRxcuid){
 
 //Search for interactions pairs??
 function extractInteractionsFromXML($result){
-	global $allConceptNames, $allConceptNuis;
+	global $allConceptNames;
 	global $childParentArray;
 	$xml = simplexml_load_string($result);
 	//Get all interactionPair nodes
@@ -235,8 +230,7 @@ function extractInteractionsFromXML($result){
    // }
       } while ($i<$numberOfInteractions);
 
-    	error_log("validInteractionCounter = ".$validInteractionCounter);
-//TODO get originalDrugName from nui using nuidArray
+    error_log("validInteractionCounter = ".$validInteractionCounter);
     for ($i=0; $i<$validInteractionCounter; $i++) {
     	error_log("");
     	error_log("interactionArray[$i]->drug1 = ".$interactionArray[$i]->drug1);
