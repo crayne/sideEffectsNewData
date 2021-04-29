@@ -43,7 +43,7 @@ while(($row = mysqli_fetch_array($result)) !== FALSE){
 	//$item = $row['UMLSConceptName'];
 	$item = $row['one_side_effect'];
 	if ($item == "") break;
-	echo $item.",";
+	echo $item."+";
 }
 echo "\n";
 
