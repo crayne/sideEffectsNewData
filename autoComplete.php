@@ -47,7 +47,8 @@ while(($row = mysqli_fetch_array($result)) !== FALSE){
 	if ($i < 10){
 		error_log("item = ".$item);
 	}
-	echo $item.",";
+	//This assumes that the character ':' does not appear in drug names
+	echo $item.":";
 }
 echo "\n";
 
