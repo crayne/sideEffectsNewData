@@ -53,12 +53,12 @@ if ($numRows == 0){
 }
 
 
-
-while(($row = mysqli_fetch_array($result)) !== FALSE){
-	//$item = $row['UMLSConceptName'];
+for($i=0; $i<$numRows; $i++){
+	//if ($i > 0) echo ",";
+	$row = mysqli_fetch_array($result);
 	$item = $row['drug_name'];
-	if ($item == "") break;
-	echo $item.",";
+	error_log("In searchSideEffect.php, med name item is @".$item."@");
+	echo $item;
 }
 
 mysqli_close($con);
