@@ -24,7 +24,7 @@ $childParentArray;
 
 //Make associative array:  $childParentArray[rxcuid] = drugname
 function getParentChildMedsFromJson($thisMed, $thisRxcuid){
-	error_log("In getParentChildMedsFromJson");
+	error_log("In getParentChildMedsFromJson, thisMed = ".$thisMed);
 	global $childParentArray;
 	$componentRxcuidArray;
 
@@ -37,11 +37,15 @@ function getParentChildMedsFromJson($thisMed, $thisRxcuid){
 	$encodedConceptProperties = json_encode($decodedResult->relatedGroup->conceptGroup[0]->conceptProperties);
 	//This contains the rxcuid
 	$conceptPropertiesArray = $decodedResult->relatedGroup->conceptGroup[0]->conceptProperties;
+	error_log("In getParentChildMedsFromJson, conceptPropertiesArray length = ".count($conceptPropertiesArray));
+
 //TODO add elements of $componentRxcuidArray to $rxcuidArray
   for ($j=0; $j<count($conceptPropertiesArray); $j++){
 		$key = $conceptPropertiesArray[$j]->name;
 		$key = truncateToFirstBlank($key);
 		$childParentArray[$key] = $thisMed;
+		error_log("In getParentChildMedsFromJson, medication for key ".$key." is ".$thisMed);
+
 	}
 }
 
@@ -174,8 +178,11 @@ function extractInteractionsFromXML($result){
   	$interaction->descriptionText = $descriptions[$i];
 		$drug1 = truncateToFirstBlank($interaction->drug1);
   	$interaction->originalDrugName1 = $childParentArray[$drug1];
+		//We should be able to get the original drug name here!!
+		if ($interaction->originalDrugName1 == null) $interaction->originalDrugName1 = $interaction->drug1;
 		$drug2 = truncateToFirstBlank($interaction->drug2);
-  	$interaction->originalDrugName2 = $childParentArray[$drug2];;
+  	$interaction->originalDrugName2 = $childParentArray[$drug2];
+		if ($interaction->originalDrugName2 == null) $interaction->originalDrugName2 = $interaction->drug2;
   	$interactionArray[$validInteractionCounter] = $interaction;
   	error_log("Value of validInteractionCounter in interaction loop is ".$validInteractionCounter);
   	$validInteractionCounter++;
