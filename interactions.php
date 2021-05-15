@@ -117,15 +117,16 @@ if ($items->length == 0) {
 	return;
 }
 else {
-	$interactionArray = extractInteractionsFromXML($result);
+	$interactionArray = extractInteractionsFromXML($result, $medications);
 	echo json_encode($interactionArray);
 	return;
 }
 
 //Search for interactions pairs??
-function extractInteractionsFromXML($result){
+function extractInteractionsFromXML($result, $medications){
 	global $allConceptNames;
 	global $childParentArray;
+	error_log("result of interaction query is: " + $result);
 	$xml = simplexml_load_string($result);
 	//Get all interactionPair nodes
 	//$query="//interactionTriple/groupConcepts/concept/conceptKind[.='DRUG_INTERACTION_KIND']";
@@ -136,7 +137,15 @@ function extractInteractionsFromXML($result){
 	error_log("Number of interactions = ".$numberOfInteractions);
 	error_log("First interactionPair node: ".$interactionPairNodes[0]);
 
-	//Get all medication names
+	//Get all brand names
+	$query=".//minConcept/name";
+	$allConceptNames = $xml->xpath($query);
+	for ($i=0; $i<count($allConceptNames); $i++) {
+		$allBrandNames[$i] = (string)$allConceptNames[$i];
+		error_log("allBrandNames[".$i."] is ".$allBrandNames[$i]);
+	}
+
+	//Get all generic names
 	$query=".//minConceptItem/name";
 	$allConceptItemNames = $xml->xpath($query);
 	for ($i=0; $i<count($allConceptItemNames); $i++) {
@@ -170,19 +179,19 @@ function extractInteractionsFromXML($result){
   	$interaction = new Interaction();
   	$k = 2*$i;
   	$interaction->drug1 = $allConceptNames[$k];
-  	$interaction->nui1 = $allConceptRxCuids[$k];
+		$interaction->nui1 = $allConceptRxCuids[$k];
    	$interaction->drug2 = $allConceptNames[$k+1];
  		$interaction->nui2 = $allConceptRxCuids[$k+1];
   	$interaction->interactionNui = $allConceptRxCuids[$j+4];
   	$interaction->severity = $severities[$i];
   	$interaction->descriptionText = $descriptions[$i];
 		$drug1 = truncateToFirstBlank($interaction->drug1);
-  	$interaction->originalDrugName1 = $childParentArray[$drug1];
+  	$interaction->originalDrugName1 = $allBrandNames[$k];
 		//We should be able to get the original drug name here!!
-		if ($interaction->originalDrugName1 == null) $interaction->originalDrugName1 = $interaction->drug1;
+		//if ($interaction->originalDrugName1 == null) $interaction->originalDrugName1 = $interaction->drug1;
 		$drug2 = truncateToFirstBlank($interaction->drug2);
-  	$interaction->originalDrugName2 = $childParentArray[$drug2];
-		if ($interaction->originalDrugName2 == null) $interaction->originalDrugName2 = $interaction->drug2;
+  	$interaction->originalDrugName2 = $allBrandNames[$k+1];
+		//if ($interaction->originalDrugName2 == null) $interaction->originalDrugName2 = $interaction->drug2;
   	$interactionArray[$validInteractionCounter] = $interaction;
   	error_log("Value of validInteractionCounter in interaction loop is ".$validInteractionCounter);
   	$validInteractionCounter++;
