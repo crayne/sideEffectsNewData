@@ -20,34 +20,6 @@ Class Interaction {
 $allConceptNames;
 $nuidArray;
 $interUrl;
-$childParentArray;
-
-//Make associative array:  $childParentArray[rxcuid] = drugname
-function getParentChildMedsFromJson($thisMed, $thisRxcuid){
-	error_log("In getParentChildMedsFromJson, thisMed = ".$thisMed);
-	global $childParentArray;
-	$componentRxcuidArray;
-
-//https://rxnav.nlm.nih.gov/REST/rxcui/1372704/related.json?tty=PIN
-	$thisUrl = "https://rxnav.nlm.nih.gov/REST/rxcui/".$thisRxcuid."/related.json?tty=PIN";
-	error_log("In getParentChildMedsFromJson, url = ".$thisUrl);
-	//Get JSON result
-	$result = file_get_contents($thisUrl);
-	$decodedResult = json_decode($result);
-	$encodedConceptProperties = json_encode($decodedResult->relatedGroup->conceptGroup[0]->conceptProperties);
-	//This contains the rxcuid
-	$conceptPropertiesArray = $decodedResult->relatedGroup->conceptGroup[0]->conceptProperties;
-	error_log("In getParentChildMedsFromJson, conceptPropertiesArray length = ".count($conceptPropertiesArray));
-
-//TODO add elements of $componentRxcuidArray to $rxcuidArray
-  for ($j=0; $j<count($conceptPropertiesArray); $j++){
-		$key = $conceptPropertiesArray[$j]->name;
-		$key = truncateToFirstBlank($key);
-		$childParentArray[$key] = $thisMed;
-		error_log("In getParentChildMedsFromJson, medication for key ".$key." is ".$thisMed);
-
-	}
-}
 
 $hostName = $_SERVER["SERVER_NAME"];
 $pos = strpos($hostName,"oryxtech");
@@ -85,7 +57,6 @@ for ($i=0; $i<count($medications); $i++){
 	$thisMed = $medications[$i];
 	$nuid = $NS->getRxcuid($thisMed);
 	$nuidArray[$nuid] = $thisMed;
-	getParentChildMedsFromJson($thisMed, $nuid);
 }
 $nuidArrayKeys = array_keys($nuidArray);
 
@@ -125,7 +96,6 @@ else {
 //Search for interactions pairs??
 function extractInteractionsFromXML($result, $medications){
 	global $allConceptNames;
-	global $childParentArray;
 	error_log("result of interaction query is: " + $result);
 	$xml = simplexml_load_string($result);
 	//Get all interactionPair nodes
