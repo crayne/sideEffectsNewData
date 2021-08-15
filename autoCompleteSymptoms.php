@@ -26,7 +26,7 @@ if (!$con)
 
 //Changed because "restlessness" was not foundd
 // $query = "select distinct UMLSConceptName from adverse_effects where UMLSConceptName like '".$searchValue."%'";
-$query = "select distinct one_side_effect from sideEffects where one_side_effect like '".$searchValue."%'";
+$query = "select distinct one_side_effect from sideEffects where one_side_effect like '%".$searchValue."%'";
 
 error_log("In autoCompleteSymptoms.php, query = ".$query);
 
